@@ -1,17 +1,24 @@
 package com.ruanmou.house.user.service.impl;
 
+import com.google.common.collect.ImmutableMap;
+import com.ruanmou.house.user.constant.UserEnum;
 import com.ruanmou.house.user.domain.User;
+import com.ruanmou.house.user.exception.UserException;
 import com.ruanmou.house.user.mapper.UserMapper;
 import com.ruanmou.house.user.service.MailService;
 import com.ruanmou.house.user.service.UserService;
 import com.ruanmou.house.utils.BeanHelper;
 import com.ruanmou.house.utils.HashUtils;
+import com.ruanmou.house.utils.JwtHelper;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -120,6 +127,58 @@ public class UserServiceImpl implements UserService {
         // 更新用户信息
         userMapper.updateUser(user);
         return false;
+    }
+
+    /**
+     * 用户的登录
+     * @param email 邮箱
+     * @param password 密码
+     * @return
+     */
+    @Override
+    public User login(String email, String password) {
+        // 校验账户和密码
+        if (StringUtils.isBlank(email) || StringUtils.isBlank(password)) {
+            throw new UserException(UserException.UserType.ACCOUNT_AND_PASSWORD_IS_NULL, "邮箱和密码是必填的");
+        }
+
+        // 构造对象设置条件
+        User user = new User();
+        user.setEnable(UserEnum.ACTIVE.getCode());
+        user.setPassword(password);
+        user.setEmail(email);
+
+        // 查询用户
+        List<User> userList = userMapper.select(user);
+        if (!CollectionUtils.isEmpty(userList)) {
+            user = userList.get(0);
+            // 生成token
+            onLogin(user);
+            return user;
+        }
+
+        throw new UserException(UserException.UserType.USER_AUTH_FAIL, "鉴权失败");
+    }
+
+    /**
+     * 生成token
+     * @param user
+     */
+    private void onLogin(User user) {
+        // 利用jwt生成token
+        String token = JwtHelper.genToken(ImmutableMap.of("name", user.getName(), "email", user.getEmail(), "timestamp", Instant.now().getEpochSecond() + ""));
+        // 设置token
+        user.setToken(token);
+    }
+
+    @Override
+    public User getLoginUserByToken(String token) {
+        return null;
+    }
+
+    @Override
+    public void logout(String token) {
+
     }
 
     private void registerNotify(String email, String enabelUrl) {
