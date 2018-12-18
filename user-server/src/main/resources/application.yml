@@ -5,7 +5,7 @@ spring:
   druid:  #数据源的皮质
     username: root
     password: 1111
-    url: jdbc:mysql://localhost:3306/house?userSSL=true
+    url: jdbc:mysql://localhost:3306/user?userSSL=true
     validationQuery: select 'x' #解决数据库八小时的问题
     maxActive: 20
     minIdle: 3
@@ -16,6 +16,18 @@ spring:
   redis: #redis配置
     host: 192.168.221.129  #地址
     port: 6379 #端口
+  #邮箱的设置
+  mail:
+    host: smtp.163.com
+    username: 13963949859@163.com
+    password: majiafei123456
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 mybatis:
   configuration:
@@ -24,3 +36,12 @@ mybatis:
 mapper:
   not-empty: true
   identity: MYSQL
+
+#图片服务器地址
+image:
+  file:
+    server: http://192.168.31.246/
+logging:
+  level:
+    com.ruanmou.house.user.mapper: debug
+
