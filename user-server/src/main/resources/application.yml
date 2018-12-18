@@ -1,0 +1,26 @@
+server:
+  port: 8070
+
+spring:
+  druid:  #数据源的皮质
+    username: root
+    password: 1111
+    url: jdbc:mysql://localhost:3306/house?userSSL=true
+    validationQuery: select 'x' #解决数据库八小时的问题
+    maxActive: 20
+    minIdle: 3
+    maxWait: 10000
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 30000
+    borrowConnectionTimeout: 30000
+  redis: #redis配置
+    host: 192.168.221.129  #地址
+    port: 6379 #端口
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:mapper/*Mapper.xml  #mapper文件的地址
+mapper:
+  not-empty: true
+  identity: MYSQL
