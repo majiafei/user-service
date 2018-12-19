@@ -20,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -168,17 +169,42 @@ public class UserServiceImpl implements UserService {
         // 利用jwt生成token
         String token = JwtHelper.genToken(ImmutableMap.of("name", user.getName(), "email", user.getEmail(), "timestamp", Instant.now().getEpochSecond() + ""));
         // 设置token
-        user.setToken(token);
+        String newToken = resetToken(token, user.getEmail());
+        user.setToken(newToken);
     }
 
+    /**
+     * 鉴权
+     * @param token
+     * @return
+     */
     @Override
     public User getLoginUserByToken(String token) {
-        return null;
+        Map<String, String> map = null;
+        try {
+            // 通过jwt进行鉴权
+          map = JwtHelper.verifyToken(token);
+        }catch (Exception e) {
+            throw new UserException(UserException.UserType.USER_NOT_LOGIN, "Token失效");
+        }
+        // 获取邮件
+        String email = map.get("email");
+        // 验证邮件是否失效在redis中
+        Long expire = redisTemplate.getExpire(email);
+        // 如果没有失效，就email的过期时间
+        if (expire > 0L) {
+            resetToken(token, email);
+            // 获取用户
+            return getUesrEmail(email);
+        }
+
+        throw new UserException(UserException.UserType.USER_NOT_LOGIN, "Token失效，请重新登录");
     }
 
     @Override
     public void logout(String token) {
-
+        Map<String, String> map = JwtHelper.verifyToken(token);
+        redisTemplate.delete(map.get("email"));
     }
 
     private void registerNotify(String email, String enabelUrl) {
@@ -193,4 +219,36 @@ public class UserServiceImpl implements UserService {
         // 发送邮件
         mailService.send("发送激活链接", content, email);
     }
+
+    /**
+     * 重置token的过期时间
+     * @param token
+     * @param email
+     * @return
+     */
+    private String resetToken(String token, String email) {
+        // 设置token
+        redisTemplate.opsForValue().set(email, token);
+        // 设置过期时间
+        redisTemplate.expire(email, 30, TimeUnit.MINUTES);
+
+        return token;
+    }
+
+    /**
+     * 根据邮箱获取用户
+     * @param email
+     * @return
+     */
+    private User getUesrEmail(String email) {
+        User user = new User();
+        user.setEmail(email);
+        List<User> userList = userMapper.select(user);
+        if (!CollectionUtils.isEmpty(userList)) {
+            return userList.get(0);
+        }
+        // 用户不存在异常
+        throw new UserException(UserException.UserType.USER_NOT_FOUND, "用户不存在");
+    }
+
 }

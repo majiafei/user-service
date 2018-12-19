@@ -6,7 +6,9 @@ import tk.mybatis.mapper.annotation.KeySql;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Transient;
+import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * 用户实体类

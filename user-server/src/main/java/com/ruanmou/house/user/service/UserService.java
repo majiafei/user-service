@@ -44,4 +44,13 @@ public interface UserService {
      */
     boolean enableAccount(String key);
 
+    //登录接口
+    User login(String email, String password);
+
+    // 鉴权接口
+    User getLoginUserByToken(String token);
+
+    // 登出接口
+    void logout(String token);
+
 }
