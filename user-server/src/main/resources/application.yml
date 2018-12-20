@@ -1,5 +1,8 @@
 server:
   port: 8070
+  error:
+    whitelabel:
+      enabled: false
 
 spring:
   druid:  #数据源的皮质
@@ -41,7 +44,16 @@ mapper:
 image:
   file:
     server: http://192.168.31.246/
+    path: D:\images
 logging:
   level:
     com.ruanmou.house.user.mapper: debug
+
+#七牛云的配置
+qiniu:
+  accessKey: bP_-Q9Pf1smTdlKNrtglsLsgNVLSKy6j0-H-COe7
+  secretKey: AqMp9NmfZXd9WwyapxpBczHH-rg8kFYHWvAsKv7k
+  bucket: hyson
+  urlPrefix: http://pjzbjaw2u.bkt.clouddn.com/
+
 

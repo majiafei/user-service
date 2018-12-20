@@ -148,16 +148,11 @@
                 </div>
                 <div class="user-area">
                     <div class="actions">
-                    <#if (loginUser.name)??>
-                        <a href="/accounts/profile" class="promoted">Hello,${(loginUser.name)!}</a>
-                          <#if (loginUser.email)?? && (loginUser.email) == "spring_boot@163.com">
-                          <a href="/agency/create" class="promoted">创建经纪机构</a>
-                          </#if>
-                        <a href="/accounts/logout" class="promoted">退出</a>
-                    <#else>
+                        <a href="/accounts/profile" class="promoted">Hello,<span th:text="${session.userName}"></span></a>
+                        <a href="/agency/create" th:if="${session.type}==2" class="promoted">创建经纪机构</a>
+                        <a href="/accounts/logout" th:if="${session.userName}!=null" class="promoted">退出</a>
                         <a href="/accounts/register" class="promoted"><strong>Register</strong></a>
-                        <a href="/accounts/signin">Sign In</a>
-                    </#if>
+                        <a href="/accounts/signin" th:if="${session.userName}==null">Sign In</a>
                     </div>
                     <div class="language-bar">
                         <a href="#" class="active"><img src="/assets/img/flags/gb.png" alt=""></a>

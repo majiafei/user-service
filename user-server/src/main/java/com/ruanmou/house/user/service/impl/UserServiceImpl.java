@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -99,7 +100,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean addAccount(User user, String enabelUrl) {
         // 将密码加密
-        HashUtils.encryPassword(user.getPassword());
+        user.setPassword(HashUtils.encryPassword(user.getPassword()));
         // 设置时间
         BeanHelper.onInsert(user);
         // 插入数据
@@ -146,7 +147,7 @@ public class UserServiceImpl implements UserService {
         // 构造对象设置条件
         User user = new User();
         user.setEnable(UserEnum.ACTIVE.getCode());
-        user.setPassword(password);
+        user.setPassword(HashUtils.encryPassword(password));
         user.setEmail(email);
 
         // 查询用户
@@ -193,9 +194,11 @@ public class UserServiceImpl implements UserService {
         Long expire = redisTemplate.getExpire(email);
         // 如果没有失效，就email的过期时间
         if (expire > 0L) {
-            resetToken(token, email);
+            String newToken = resetToken(token, email);
+            User user = getUesrEmail(email);
+            user.setToken(newToken);
             // 获取用户
-            return getUesrEmail(email);
+            return user;
         }
 
         throw new UserException(UserException.UserType.USER_NOT_LOGIN, "Token失效，请重新登录");
@@ -207,7 +210,8 @@ public class UserServiceImpl implements UserService {
         redisTemplate.delete(map.get("email"));
     }
 
-    private void registerNotify(String email, String enabelUrl) {
+    @Async
+    protected void registerNotify(String email, String enabelUrl) {
         // 生成随机字符串
         String randomKey = HashUtils.hashString(enabelUrl) + RandomStringUtils.randomAlphanumeric(10);
         // 将随机字符串放到redis中

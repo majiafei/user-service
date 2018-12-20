@@ -1,6 +1,7 @@
 package com.ruanmou.house.user.domain;
 
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 import tk.mybatis.mapper.annotation.KeySql;
 
 import javax.persistence.Column;
@@ -28,7 +29,6 @@ public class User {
     private String  phone;
     private String  email;
     private String  aboutme;
-    @Column(name = "passwd")
     private String  password;
     private String avatar;
     private Integer type;
@@ -41,4 +41,6 @@ public class User {
     private String token;
     @Transient // 激活链接
     private String enableUrl;
+    @Transient
+    private MultipartFile avatarFile;
 }
